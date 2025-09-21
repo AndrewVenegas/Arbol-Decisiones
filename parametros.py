@@ -80,7 +80,50 @@ activities = [
             {"label": "Pérdida", "prob": 0.30, "npv": -5000.0},
         ],
     },
+    # Nuevas actividades agregadas
+    {
+        "name": "Tours Guiados",
+        "decision_key": "tours_guiados",
+        "horizon_years": 3,
+        "outcomes": [
+            {"label": "Alta Demanda", "prob": 0.25, "npv": 35000.0},
+            {"label": "Demanda Moderada", "prob": 0.45, "npv": 12000.0},
+            {"label": "Baja Demanda", "prob": 0.30, "npv": -8000.0},
+        ],
+    },
+    {
+        "name": "Jornadas de Educación",
+        "decision_key": "jornadas_educacion",
+        "horizon_years": 2,
+        "outcomes": [
+            {"label": "Éxito Académico", "prob": 0.40, "npv": 20000.0},
+            {"label": "Participación Regular", "prob": 0.35, "npv": 6000.0},
+            {"label": "Baja Participación", "prob": 0.25, "npv": -15000.0},
+        ],
+    },
+    {
+        "name": "Eventos Especiales",
+        "decision_key": "eventos_especiales",
+        "horizon_years": 2,
+        "outcomes": [
+            {"label": "Evento Exitoso", "prob": 0.30, "npv": 28000.0},
+            {"label": "Evento Regular", "prob": 0.40, "npv": 8000.0},
+            {"label": "Evento Fallido", "prob": 0.30, "npv": -12000.0},
+        ],
+    },
+    {
+        "name": "Arriendo de Espacios",
+        "decision_key": "arriendo_espacios",
+        "horizon_years": 4,
+        "outcomes": [
+            {"label": "Alta Ocupación", "prob": 0.35, "npv": 40000.0},
+            {"label": "Ocupación Moderada", "prob": 0.45, "npv": 15000.0},
+            {"label": "Baja Ocupación", "prob": 0.20, "npv": -5000.0},
+        ],
+    },
 ]
 
-# Orden consistente de las decisiones para construir combinaciones (2^6)
+
+
+# Orden consistente de las decisiones para construir combinaciones (2^10)
 decision_order = [a["decision_key"] for a in activities]
