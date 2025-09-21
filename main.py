@@ -4,6 +4,7 @@ import itertools
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 import math
+import os
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -191,7 +192,13 @@ def plot_worst_combinations(df_sorted: pd.DataFrame, outfile: str):
 def main():
     activities = load_activities()
     decision_order = P.decision_order
-    url_base = "C:/Users/avene/Desktop/Ingeniería/Semestres/Ingeniería 10mo semestre/Evaluación de Proyectos/Arbol de Decision"
+    
+    # Crear carpeta de resultados si no existe
+    resultados_dir = "resultados"
+    if not os.path.exists(resultados_dir):
+        os.makedirs(resultados_dir)
+    
+    url_base = resultados_dir
     # 1) EV por actividad
     act_ev = {a.decision_key: expected_npv(a) for a in activities}
 
@@ -231,9 +238,7 @@ def main():
     print('/n=== Top 10 combinaciones por EV_total ===')
     print(df_sorted.head(10))
 
-    print('/nArchivos generados:')
-    print(f' - {url_base}/parametros.py (edita aquí probabilidades y VPN)')
-    print(f' - {url_base}/main.py')
+    print('\nArchivos generados en la carpeta "resultados":')
     print(f' - {url_base}/combinaciones_ev.csv')
     print(f' - {url_base}/tornado.png')
     print(f' - {url_base}/tornado_data.csv')
