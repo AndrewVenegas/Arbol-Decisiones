@@ -1,5 +1,7 @@
-# Carpeta de resultados generados por el script
+# Carpetas de resultados generados por el script
 resultados/
+resultados-concesion/
+resultados-administracion-propia/
 
 # Archivos temporales de Python
 __pycache__/
