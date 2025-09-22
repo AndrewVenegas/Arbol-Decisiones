@@ -7,7 +7,7 @@ El código descontará automáticamente estos flujos al presente usando la tasa 
 """
 
 # Tasa de descuento para descontar flujos futuros al presente
-discount_rate = 0.12  # 12% anual
+discount_rate = 0.06  # 12% anual
 
 # Definición de actividades - ESCENARIO CONCESIÓN
 # Cada actividad posee:
@@ -22,9 +22,9 @@ activities = [
         "decision_key": "lodge",
         "horizon_years": 2,
         "outcomes": [
-            {"label": "Éxito Alto", "prob": 0.10, "npv": 100000.0},
-            {"label": "Éxito Moderado", "prob": 0.30, "npv": 30000.0},
-            {"label": "Fracaso", "prob": 0.60, "npv": -10000.0},
+            {"label": "Éxito Alto", "prob": 0.10, "npv": 33147321.4},
+            {"label": "Éxito Moderado", "prob": 0.30, "npv": 11732142.9},
+            {"label": "Fracaso", "prob": 0.60, "npv": 5866071.43},
         ],
     },
     {
@@ -32,9 +32,9 @@ activities = [
         "decision_key": "cabalgatas",
         "horizon_years": 3,
         "outcomes": [
-            {"label": "Alta Demanda", "prob": 0.30, "npv": 15000.0},
-            {"label": "Demanda Regular", "prob": 0.40, "npv": 5000.0},
-            {"label": "Baja Demanda", "prob": 0.30, "npv": -60000.0},
+            {"label": "Alta Demanda", "prob": 0.30, "npv": -39750000.0},
+            {"label": "Demanda Regular", "prob": 0.40, "npv": -66750000.0},
+            {"label": "Baja Demanda", "prob": 0.30, "npv": -82950000.0},
         ],
     },
     {
@@ -42,9 +42,9 @@ activities = [
         "decision_key": "trekking",
         "horizon_years": 2,
         "outcomes": [
-            {"label": "Éxito Alto", "prob": 0.20, "npv": 25000.0},
-            {"label": "Éxito Moderado", "prob": 0.50, "npv": 8000.0},
-            {"label": "Fracaso", "prob": 0.30, "npv": -12000.0},
+            {"label": "Éxito Alto", "prob": 0.20, "npv": 262500000.0},
+            {"label": "Éxito Moderado", "prob": 0.50, "npv": 131250000.0},
+            {"label": "Fracaso", "prob": 0.30, "npv": 37500000.0},
         ],
     },
     {
@@ -52,9 +52,9 @@ activities = [
         "decision_key": "mtb",
         "horizon_years": 3,
         "outcomes": [
-            {"label": "Éxito", "prob": 0.35, "npv": 30000.0},
-            {"label": "Neutro", "prob": 0.25, "npv": 0.0},
-            {"label": "Fracaso", "prob": 0.40, "npv": -20000.0},
+            {"label": "Éxito", "prob": 0.35, "npv": 18750000.0},
+            {"label": "Neutro", "prob": 0.25, "npv": 9375000.0},
+            {"label": "Fracaso", "prob": 0.40, "npv": 4687500.0},
         ],
     },
     {
@@ -62,9 +62,9 @@ activities = [
         "decision_key": "kayak",
         "horizon_years": 2,
         "outcomes": [
-            {"label": "Éxito", "prob": 0.25, "npv": 18000.0},
-            {"label": "Neutro", "prob": 0.25, "npv": 2000.0},
-            {"label": "Fracaso", "prob": 0.50, "npv": -9000.0},
+            {"label": "Éxito", "prob": 0.25, "npv": 1125000.0},
+            {"label": "Neutro", "prob": 0.25, "npv": 562500.0},
+            {"label": "Fracaso", "prob": 0.50, "npv": 187500.0},
         ],
     },
     {
@@ -72,9 +72,9 @@ activities = [
         "decision_key": "tours_guiados",
         "horizon_years": 3,
         "outcomes": [
-            {"label": "Alta Demanda", "prob": 0.25, "npv": 35000.0},
-            {"label": "Demanda Moderada", "prob": 0.45, "npv": 12000.0},
-            {"label": "Baja Demanda", "prob": 0.30, "npv": -8000.0},
+            {"label": "Alta Demanda", "prob": 0.25, "npv": 108750000.0},
+            {"label": "Demanda Moderada", "prob": 0.45, "npv": 54375000.0},
+            {"label": "Baja Demanda", "prob": 0.30, "npv": 27187500.0},
         ],
     },
     {
@@ -82,9 +82,9 @@ activities = [
         "decision_key": "jornadas_educacion",
         "horizon_years": 2,
         "outcomes": [
-            {"label": "Éxito Académico", "prob": 0.40, "npv": 20000.0},
-            {"label": "Participación Regular", "prob": 0.35, "npv": 6000.0},
-            {"label": "Baja Participación", "prob": 0.25, "npv": -15000.0},
+            {"label": "Éxito Académico", "prob": 0.40, "npv": 62100000.0},
+            {"label": "Participación Regular", "prob": 0.35, "npv": 31050000.0},
+            {"label": "Baja Participación", "prob": 0.25, "npv": 20700000.0},
         ],
     },
     {
@@ -92,9 +92,9 @@ activities = [
         "decision_key": "eventos_especiales",
         "horizon_years": 2,
         "outcomes": [
-            {"label": "Evento Exitoso", "prob": 0.30, "npv": 28000.0},
-            {"label": "Evento Regular", "prob": 0.40, "npv": 8000.0},
-            {"label": "Evento Fallido", "prob": 0.30, "npv": -12000.0},
+            {"label": "Evento Exitoso", "prob": 0.30, "npv": 89250000.0},
+            {"label": "Evento Regular", "prob": 0.40, "npv": 44250000.0},
+            {"label": "Evento Fallido", "prob": 0.30, "npv": 14250000.0},
         ],
     },
     {
@@ -102,9 +102,9 @@ activities = [
         "decision_key": "arriendo_espacios",
         "horizon_years": 4,
         "outcomes": [
-            {"label": "Alta Ocupación", "prob": 0.35, "npv": 40000.0},
-            {"label": "Ocupación Moderada", "prob": 0.45, "npv": 15000.0},
-            {"label": "Baja Ocupación", "prob": 0.20, "npv": -5000.0},
+            {"label": "Alta Ocupación", "prob": 0.35, "npv": 33750000.0},
+            {"label": "Ocupación Moderada", "prob": 0.45, "npv": 16875000.0},
+            {"label": "Baja Ocupación", "prob": 0.20, "npv": 8437500.0},
         ],
     },
 

@@ -7,7 +7,7 @@ El código descontará automáticamente estos flujos al presente usando la tasa 
 """
 
 # Tasa de descuento para descontar flujos futuros al presente
-discount_rate = 0.12  # 12% anual
+discount_rate = 0.06  # 12% anual
 
 # Definición de actividades - ESCENARIO ADMINISTRACIÓN PROPIA
 # Cada actividad posee:
