@@ -177,27 +177,29 @@ def plot_main_decision_analysis(df_main_decision: pd.DataFrame, outfile: str):
     
     # Gráfico 1: Comparación de NPVs
     colors = ['#FF6B6B', '#4ECDC4']
-    bars = ax1.bar(df_main_decision['Decision'], df_main_decision['NPV_Total'], color=colors)
+    npv_millions = df_main_decision['NPV_Total'] / 1e6  # Convertir a millones
+    bars = ax1.bar(df_main_decision['Decision'], npv_millions, color=colors)
     ax1.set_title('NPV Total: Concesión vs Administración Propia', fontsize=14, fontweight='bold')
-    ax1.set_ylabel('NPV Total ($)')
+    ax1.set_ylabel('NPV Total (Millones $)')
     ax1.tick_params(axis='x', rotation=45)
     
     # Agregar valores en las barras
-    for bar, value in zip(bars, df_main_decision['NPV_Total']):
-        ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(df_main_decision['NPV_Total'])*0.01,
-                f'${value:,.0f}', ha='center', va='bottom', fontweight='bold')
+    for bar, value in zip(bars, npv_millions):
+        ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(npv_millions)*0.01,
+                f'${value:,.1f}M', ha='center', va='bottom', fontweight='bold')
     
     # Gráfico 2: Diferencia
     diferencia = df_main_decision.iloc[1]['NPV_Total'] - df_main_decision.iloc[0]['NPV_Total']
+    diferencia_millions = diferencia / 1e6  # Convertir a millones
     color = '#2ECC71' if diferencia > 0 else '#E74C3C'
     
-    ax2.barh(['Ventaja Administración Propia'], [diferencia], color=color)
+    ax2.barh(['Ventaja Administración Propia'], [diferencia_millions], color=color)
     ax2.set_title('Ventaja de Administración Propia', fontsize=14, fontweight='bold')
-    ax2.set_xlabel('Diferencia en NPV ($)')
+    ax2.set_xlabel('Diferencia en NPV (Millones $)')
     ax2.axvline(x=0, color='black', linestyle='--', alpha=0.5)
     
     # Agregar valor
-    ax2.text(diferencia + (max(abs(diferencia), 1000) * 0.05), 0, f'${diferencia:,.0f}', 
+    ax2.text(diferencia_millions + (max(abs(diferencia_millions), 1) * 0.05), 0, f'${diferencia_millions:,.1f}M', 
              ha='left' if diferencia > 0 else 'right', va='center', fontweight='bold')
     
     plt.tight_layout()
@@ -214,29 +216,33 @@ def plot_individual_decisions(df_individual: pd.DataFrame, outfile: str):
     df_sorted = df_individual.sort_values('Valor_Decision', ascending=True)
     
     # Gráfico 1: Valor de cada decisión
-    colors = ['#E74C3C' if x < 0 else '#2ECC71' for x in df_sorted['Valor_Decision']]
-    bars = ax1.barh(df_sorted['Actividad'], df_sorted['Valor_Decision'], color=colors)
+    valor_millions = df_sorted['Valor_Decision'] / 1e6  # Convertir a millones
+    colors = ['#E74C3C' if x < 0 else '#2ECC71' for x in valor_millions]
+    bars = ax1.barh(df_sorted['Actividad'], valor_millions, color=colors)
     ax1.set_title('Valor de Decisión por Actividad', fontsize=14, fontweight='bold')
-    ax1.set_xlabel('Valor de la Decisión ($)')
+    ax1.set_xlabel('Valor de la Decisión (Millones $)')
     ax1.axvline(x=0, color='black', linestyle='--', alpha=0.5)
     
     # Agregar valores
-    for bar, value in zip(bars, df_sorted['Valor_Decision']):
-        ax1.text(bar.get_width() + (max(abs(df_sorted['Valor_Decision'])) * 0.02), 
-                bar.get_y() + bar.get_height()/2, f'${value:,.0f}', 
+    for bar, value in zip(bars, valor_millions):
+        ax1.text(bar.get_width() + (max(abs(valor_millions)) * 0.02), 
+                bar.get_y() + bar.get_height()/2, f'${value:,.1f}M', 
                 ha='left' if value > 0 else 'right', va='center', fontsize=9)
     
     # Gráfico 2: NPV si hago vs no hago
     x = range(len(df_sorted))
     width = 0.35
     
-    bars1 = ax2.bar([i - width/2 for i in x], df_sorted['NPV_Hacer'], width, 
+    npv_hacer_millions = df_sorted['NPV_Hacer'] / 1e6  # Convertir a millones
+    npv_no_hacer_millions = df_sorted['NPV_No_Hacer'] / 1e6  # Convertir a millones
+    
+    bars1 = ax2.bar([i - width/2 for i in x], npv_hacer_millions, width, 
                     label='NPV si HAGO', color='#3498DB', alpha=0.8)
-    bars2 = ax2.bar([i + width/2 for i in x], df_sorted['NPV_No_Hacer'], width, 
+    bars2 = ax2.bar([i + width/2 for i in x], npv_no_hacer_millions, width, 
                     label='NPV si NO HAGO', color='#95A5A6', alpha=0.8)
     
     ax2.set_title('NPV: Hacer vs No Hacer por Actividad', fontsize=14, fontweight='bold')
-    ax2.set_ylabel('NPV ($)')
+    ax2.set_ylabel('NPV (Millones $)')
     ax2.set_xlabel('Actividades')
     ax2.set_xticks(x)
     ax2.set_xticklabels(df_sorted['Actividad'], rotation=45, ha='right')
@@ -442,11 +448,11 @@ def build_decision_tree_graph(activities: List[Activity]) -> nx.DiGraph:
 def plot_tornado(df: pd.DataFrame, outfile: str):
     plt.figure(figsize=(8, 5))
     y = list(df['actividad'])
-    x = list(df['impacto_EV_mantener_vs_no'])
+    x = [val / 1e6 for val in df['impacto_EV_mantener_vs_no']]  # Convertir a millones
     y_pos = range(len(y))
     plt.barh(y_pos, x)
     plt.yticks(list(y_pos), y)
-    plt.xlabel('Impacto en EV (mantener vs no)')
+    plt.xlabel('Impacto en EV (mantener vs no) - Millones $')
     plt.title('Tornado (impacto marginal por actividad)')
     plt.tight_layout()
     plt.savefig(outfile, dpi=150)
@@ -486,14 +492,15 @@ def plot_top_combinations(df_sorted: pd.DataFrame, outfile: str):
         else:
             labels.append('Ninguna actividad')
     
-    bars = plt.barh(y_pos, top_10['EV_total'])
+    ev_millions = top_10['EV_total'] / 1e6  # Convertir a millones
+    bars = plt.barh(y_pos, ev_millions)
     plt.yticks(y_pos, labels)
-    plt.xlabel('EV Total')
+    plt.xlabel('EV Total (Millones $)')
     plt.title('Top 10 Mejores Combinaciones por Valor Esperado')
     
     # Agregar valores en las barras
-    for i, (bar, value) in enumerate(zip(bars, top_10['EV_total'])):
-        plt.text(value + 50, i, f'${value:,.0f}', va='center', fontsize=9)
+    for i, (bar, value) in enumerate(zip(bars, ev_millions)):
+        plt.text(value + max(ev_millions) * 0.01, i, f'${value:,.1f}M', va='center', fontsize=9)
     
     plt.tight_layout()
     plt.savefig(outfile, dpi=150)
@@ -518,14 +525,15 @@ def plot_worst_combinations(df_sorted: pd.DataFrame, outfile: str):
         else:
             labels.append('Ninguna actividad')
     
-    bars = plt.barh(y_pos, worst_10['EV_total'])
+    ev_millions = worst_10['EV_total'] / 1e6  # Convertir a millones
+    bars = plt.barh(y_pos, ev_millions)
     plt.yticks(y_pos, labels)
-    plt.xlabel('EV Total')
+    plt.xlabel('EV Total (Millones $)')
     plt.title('Top 10 Peores Combinaciones por Valor Esperado')
     
     # Agregar valores en las barras
-    for i, (bar, value) in enumerate(zip(bars, worst_10['EV_total'])):
-        plt.text(value - 100, i, f'${value:,.0f}', va='center', fontsize=9, ha='right')
+    for i, (bar, value) in enumerate(zip(bars, ev_millions)):
+        plt.text(value - max(abs(ev_millions)) * 0.01, i, f'${value:,.1f}M', va='center', fontsize=9, ha='right')
     
     plt.tight_layout()
     plt.savefig(outfile, dpi=150)
@@ -600,13 +608,16 @@ def plot_concession_comparison(df_comparison: pd.DataFrame, outfile: str):
     x = range(len(df_comparison))
     width = 0.35
     
-    ax1.bar([i - width/2 for i in x], df_comparison['EV_Propio'], width, 
+    ev_propio_millions = df_comparison['EV_Propio'] / 1e6  # Convertir a millones
+    ev_concesion_millions = df_comparison['EV_Concesion'] / 1e6  # Convertir a millones
+    
+    ax1.bar([i - width/2 for i in x], ev_propio_millions, width, 
             label='Administración Propia', alpha=0.8)
-    ax1.bar([i + width/2 for i in x], df_comparison['EV_Concesion'], width, 
+    ax1.bar([i + width/2 for i in x], ev_concesion_millions, width, 
             label='Concesión', alpha=0.8)
     
     ax1.set_xlabel('Actividades')
-    ax1.set_ylabel('Valor Esperado (EV)')
+    ax1.set_ylabel('Valor Esperado (EV) - Millones $')
     ax1.set_title('Comparación: Administración Propia vs Concesión')
     ax1.set_xticks(x)
     ax1.set_xticklabels(df_comparison['Actividad'], rotation=45, ha='right')
@@ -614,13 +625,13 @@ def plot_concession_comparison(df_comparison: pd.DataFrame, outfile: str):
     ax1.grid(True, alpha=0.3)
     
     # Gráfico 2: Ventaja de cada opción
-    ventaja_propio = df_comparison['Ventaja_Propio']
-    ventaja_concesion = df_comparison['Ventaja_Concesion']
+    ventaja_propio_millions = df_comparison['Ventaja_Propio'] / 1e6  # Convertir a millones
+    ventaja_concesion_millions = df_comparison['Ventaja_Concesion'] / 1e6  # Convertir a millones
     
-    ax2.barh(x, ventaja_propio, alpha=0.8, label='Ventaja Propia')
-    ax2.barh(x, [-v for v in ventaja_concesion], alpha=0.8, label='Ventaja Concesión')
+    ax2.barh(x, ventaja_propio_millions, alpha=0.8, label='Ventaja Propia')
+    ax2.barh(x, [-v for v in ventaja_concesion_millions], alpha=0.8, label='Ventaja Concesión')
     
-    ax2.set_xlabel('Ventaja en EV')
+    ax2.set_xlabel('Ventaja en EV (Millones $)')
     ax2.set_ylabel('Actividades')
     ax2.set_title('Ventaja de cada Modalidad')
     ax2.set_yticks(x)
@@ -686,18 +697,19 @@ def plot_main_scenarios(df_scenarios: pd.DataFrame, outfile: str):
     
     # Gráfico de barras
     x = range(len(df_scenarios))
-    bars = plt.bar(x, df_scenarios['EV_Total'], alpha=0.8, 
+    ev_millions = df_scenarios['EV_Total'] / 1e6  # Convertir a millones
+    bars = plt.bar(x, ev_millions, alpha=0.8, 
                    color=['#ff7f0e', '#2ca02c'])
     
     plt.xlabel('Escenario')
-    plt.ylabel('Valor Esperado Total')
+    plt.ylabel('Valor Esperado Total (Millones $)')
     plt.title('Comparación: Todo Concesionado vs Todo Propio')
     plt.xticks(x, df_scenarios['Escenario'])
     
     # Agregar valores en las barras
-    for i, (bar, value) in enumerate(zip(bars, df_scenarios['EV_Total'])):
-        plt.text(bar.get_x() + bar.get_width()/2, value + 1000, 
-                f'${value:,.0f}', ha='center', va='bottom', fontsize=10)
+    for i, (bar, value) in enumerate(zip(bars, ev_millions)):
+        plt.text(bar.get_x() + bar.get_width()/2, value + max(ev_millions) * 0.01, 
+                f'${value:,.1f}M', ha='center', va='bottom', fontsize=10)
     
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
