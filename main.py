@@ -62,6 +62,33 @@ def verify_calculation_example():
     print(f"   Fórmula: ${future_flow:,} / (1.12)^{horizon_years} = ${npv_calculated:,.0f}")
     print("✅ Cálculo correcto!")
 
+def verify_probabilities(parametros):
+    """
+    Verifica que las probabilidades de cada actividad sumen 1.0
+    """
+    print("\n🔍 VERIFICACIÓN DE PROBABILIDADES:")
+    print("="*50)
+    
+    all_valid = True
+    
+    for i, activity in enumerate(parametros.activities):
+        total_prob = sum(outcome['prob'] for outcome in activity['outcomes'])
+        is_valid = abs(total_prob - 1.0) < 0.001  # Tolerancia para errores de punto flotante
+        
+        status = "✅" if is_valid else "❌"
+        print(f"{status} {activity['name']}: {total_prob:.3f} {'✓' if is_valid else '✗'}")
+        
+        if not is_valid:
+            all_valid = False
+            print(f"   ⚠️  Probabilidades: {[outcome['prob'] for outcome in activity['outcomes']]}")
+    
+    if all_valid:
+        print("\n🎉 ¡Todas las probabilidades suman 1.0 correctamente!")
+    else:
+        print("\n⚠️  Algunas actividades tienen probabilidades que no suman 1.0")
+    
+    return all_valid
+
 def analyze_main_decision(activities_concesion: List[Activity], activities_propio: List[Activity], discount_rate: float = 0.12) -> pd.DataFrame:
     """
     Analiza la decisión principal: Concesionar todo vs Administración propia
@@ -763,6 +790,12 @@ def main():
     
     # Verificar cálculos
     verify_calculation_example()
+    
+    # Verificar probabilidades
+    print("\n🔍 Verificando parámetros de concesión...")
+    verify_probabilities(P_CONCESION)
+    print("\n🔍 Verificando parámetros de administración propia...")
+    verify_probabilities(P_PROPIO)
     
     # Analizar escenario de CONCESIÓN
     df_concesion, df_tornado_concesion, activities_concesion = analyze_scenario(

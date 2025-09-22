@@ -22,8 +22,9 @@ activities = [
         "decision_key": "lodge",
         "horizon_years": 2,
         "outcomes": [
-            {"label": "Éxito", "prob": 0.10, "npv": 100000.0},
-            {"label": "Fracaso", "prob": 0.90, "npv": -10000.0},
+            {"label": "Éxito Alto", "prob": 0.10, "npv": 100000.0},
+            {"label": "Éxito Moderado", "prob": 0.30, "npv": 30000.0},
+            {"label": "Fracaso", "prob": 0.60, "npv": 0},
         ],
     },
     {
@@ -31,8 +32,9 @@ activities = [
         "decision_key": "cabalgatas",
         "horizon_years": 3,
         "outcomes": [
-            {"label": "Éxito", "prob": 0.30, "npv": 15000.0},
-            {"label": "Fracaso", "prob": 0.70, "npv": -60000.0},
+            {"label": "Alta Demanda", "prob": 0.30, "npv": 15000.0},
+            {"label": "Demanda Regular", "prob": 0.40, "npv": 5000.0},
+            {"label": "Baja Demanda", "prob": 0.30, "npv": -60000.0},
         ],
     },
     {
@@ -110,11 +112,12 @@ activities = [
         "decision_key": "senaleticas",
         "horizon_years": 1,
         "outcomes": [
-            {"label": "Beneficio", "prob": 0.70, "npv": 5000.0},
+            {"label": "Beneficio Alto", "prob": 0.40, "npv": 8000.0},
+            {"label": "Beneficio Moderado", "prob": 0.30, "npv": 2000.0},
             {"label": "Pérdida", "prob": 0.30, "npv": -5000.0},
         ],
     },
 ]
 
-# Orden consistente de las decisiones para construir combinaciones (2^10)
+# Orden consistente de las decisiones para construir combinaciones (2^11)
 decision_order = [a["decision_key"] for a in activities]
