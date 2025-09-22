@@ -42,9 +42,9 @@ activities = [
         "decision_key": "trekking",
         "horizon_years": 2,
         "outcomes": [
-            {"label": "Éxito Alto", "prob": 0.20, "npv": 350000000.0},
-            {"label": "Éxito Moderado", "prob": 0.35, "npv": 175000000.0},
-            {"label": "Fracaso", "prob": 0.45, "npv": 50000000.0},
+            {"label": "Éxito Alto", "prob": 0.05, "npv": 350000000.0},
+            {"label": "Éxito Moderado", "prob": 0.10, "npv": 175000000.0},
+            {"label": "Fracaso", "prob": 0.85, "npv": 50000000.0},
         ],
     },
     {
