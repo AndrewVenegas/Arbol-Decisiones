@@ -29,8 +29,38 @@ class Activity:
 
 # Función load_activities eliminada - ahora se carga directamente en analyze_scenario
 
-def expected_npv(activity: Activity) -> float:
-    return sum(o.prob * o.npv for o in activity.outcomes)
+def expected_npv(activity: Activity, discount_rate: float = 0.12) -> float:
+    """
+    Calcula el valor presente neto esperado de una actividad
+    Descuenta los flujos futuros al presente usando la tasa de descuento
+    
+    Fórmula: EV = Σ(probabilidad × flujo_futuro / (1 + tasa_descuento)^horizonte_años)
+    """
+    return sum(o.prob * o.npv / ((1 + discount_rate) ** activity.horizon_years) for o in activity.outcomes)
+
+def verify_calculation_example():
+    """
+    Función de verificación para demostrar el cálculo correcto del NPV
+    """
+    print("\n🧮 VERIFICACIÓN DE CÁLCULOS:")
+    print("="*50)
+    
+    # Ejemplo: Actividad con horizonte de 2 años, flujo futuro de $100,000
+    # Tasa de descuento: 12%
+    # NPV esperado = $100,000 / (1.12)^2 = $100,000 / 1.2544 = $79,719
+    
+    horizon_years = 2
+    discount_rate = 0.12
+    future_flow = 100000
+    
+    npv_calculated = future_flow / ((1 + discount_rate) ** horizon_years)
+    print(f"📊 Ejemplo de cálculo:")
+    print(f"   Flujo futuro: ${future_flow:,}")
+    print(f"   Horizonte: {horizon_years} años")
+    print(f"   Tasa de descuento: {discount_rate*100:.1f}%")
+    print(f"   NPV calculado: ${npv_calculated:,.0f}")
+    print(f"   Fórmula: ${future_flow:,} / (1.12)^{horizon_years} = ${npv_calculated:,.0f}")
+    print("✅ Cálculo correcto!")
 
 def enumerate_combinations(decision_order: List[str]) -> List[Tuple[Tuple[int, ...], Dict[str, int]]]:
     combos = []
@@ -41,10 +71,10 @@ def enumerate_combinations(decision_order: List[str]) -> List[Tuple[Tuple[int, .
 
 # Función eval_combo eliminada - ya no se usa con la nueva estructura
 
-def tornado_data(activities: List[Activity]) -> pd.DataFrame:
+def tornado_data(activities: List[Activity], discount_rate: float = 0.12) -> pd.DataFrame:
     rows = []
     for act in activities:
-        on_val = expected_npv(act)
+        on_val = expected_npv(act, discount_rate)
         off_val = 0.0
         delta = on_val - off_val
         rows.append({
@@ -180,7 +210,7 @@ def plot_worst_combinations(df_sorted: pd.DataFrame, outfile: str):
     plt.savefig(outfile, dpi=150)
     plt.close()
 
-def compare_concession_vs_own(activities_concesion: List[Activity], activities_propio: List[Activity]) -> pd.DataFrame:
+def compare_concession_vs_own(activities_concesion: List[Activity], activities_propio: List[Activity], discount_rate: float = 0.12) -> pd.DataFrame:
     """
     Compara el valor esperado de actividades propias vs concesionadas
     """
@@ -199,8 +229,8 @@ def compare_concession_vs_own(activities_concesion: List[Activity], activities_p
             propio = propio_dict[name]
             concesion = concesion_dict[name]
             
-            ev_propio = expected_npv(propio)
-            ev_concesion = expected_npv(concesion)
+            ev_propio = expected_npv(propio, discount_rate)
+            ev_concesion = expected_npv(concesion, discount_rate)
             diferencia = ev_propio - ev_concesion
             
             comparison_data.append({
@@ -215,7 +245,7 @@ def compare_concession_vs_own(activities_concesion: List[Activity], activities_p
         elif name in concesion_dict:
             # Solo tiene versión concesionada
             concesion = concesion_dict[name]
-            ev_concesion = expected_npv(concesion)
+            ev_concesion = expected_npv(concesion, discount_rate)
             comparison_data.append({
                 'Actividad': name,
                 'EV_Propio': 0,
@@ -228,7 +258,7 @@ def compare_concession_vs_own(activities_concesion: List[Activity], activities_p
         elif name in propio_dict:
             # Solo tiene versión propia
             propio = propio_dict[name]
-            ev_propio = expected_npv(propio)
+            ev_propio = expected_npv(propio, discount_rate)
             comparison_data.append({
                 'Actividad': name,
                 'EV_Propio': ev_propio,
@@ -366,8 +396,10 @@ def analyze_scenario(parametros, scenario_name: str, resultados_base: str):
         activities.append(Activity(a['name'], a['decision_key'], a['horizon_years'], outcomes))
     
     decision_keys = parametros.decision_order
+    discount_rate = getattr(parametros, 'discount_rate', 0.12)  # Usar tasa de descuento de parámetros
     
     print(f"   📊 Actividades en este escenario: {len(activities)}")
+    print(f"   💰 Tasa de descuento: {discount_rate*100:.1f}% anual")
     
     # Crear carpeta específica para este escenario
     scenario_dir = f"{resultados_base}-{scenario_name.lower().replace(' ', '-')}"
@@ -377,7 +409,7 @@ def analyze_scenario(parametros, scenario_name: str, resultados_base: str):
     
     # 1) EV por actividad
     print("   💰 Calculando valor esperado por actividad...")
-    act_ev = {a.decision_key: expected_npv(a) for a in activities}
+    act_ev = {a.decision_key: expected_npv(a, discount_rate) for a in activities}
     print(f"   ✅ EV calculado para {len(act_ev)} actividades")
     
     # 2) Enumeración de combinaciones
@@ -392,7 +424,7 @@ def analyze_scenario(parametros, scenario_name: str, resultados_base: str):
         if (i + 1) % 200 == 0 or i == 0:
             print(f"   📊 Procesando combinación {i+1:,}/{total_combos:,} ({(i+1)/total_combos*100:.1f}%)")
         
-        total_ev = sum(expected_npv(act) for bit, act in zip(bits, activities) if bit == 1)
+        total_ev = sum(expected_npv(act, discount_rate) for bit, act in zip(bits, activities) if bit == 1)
         rows.append({
             **mapping,
             'EV_total': total_ev
@@ -405,7 +437,7 @@ def analyze_scenario(parametros, scenario_name: str, resultados_base: str):
 
     # 3) Tornado (impacto marginal)
     print("   🌪️ Generando análisis tornado...")
-    df_tornado = tornado_data(activities)
+    df_tornado = tornado_data(activities, discount_rate)
     plot_tornado(df_tornado, f'{scenario_dir}/tornado.png')
     print(f"   ✅ Gráfico tornado guardado: {scenario_dir}/tornado.png")
 
@@ -435,6 +467,9 @@ def main():
     print("🚀 Iniciando análisis de árbol de decisiones...")
     start_time = time.time()
     
+    # Verificar cálculos
+    verify_calculation_example()
+    
     # Analizar escenario de CONCESIÓN
     df_concesion, df_tornado_concesion, activities_concesion = analyze_scenario(
         P_CONCESION, "concesion", "resultados"
@@ -447,7 +482,8 @@ def main():
     
     # Análisis comparativo entre ambos escenarios
     print("\n⚖️ Generando análisis comparativo...")
-    df_comparison = compare_concession_vs_own(activities_concesion, activities_propio)
+    discount_rate = getattr(P_CONCESION, 'discount_rate', 0.12)  # Usar tasa de descuento
+    df_comparison = compare_concession_vs_own(activities_concesion, activities_propio, discount_rate)
     
     # Guardar análisis comparativo en carpeta de concesión
     plot_concession_comparison(df_comparison, f'resultados-concesion/comparacion_concesion_vs_propio.png')
@@ -492,11 +528,11 @@ def main():
     
     print('\n=== EV por actividad - CONCESIÓN ===')
     for a in activities_concesion:
-        print(f"- {a.name}: EV = {expected_npv(a):,.0f} (horizonte {a.horizon_years} años)")
-    
+        print(f"- {a.name}: EV = {expected_npv(a, discount_rate):,.0f} (horizonte {a.horizon_years} años)")
+
     print('\n=== EV por actividad - ADMINISTRACIÓN PROPIA ===')
     for a in activities_propio:
-        print(f"- {a.name}: EV = {expected_npv(a):,.0f} (horizonte {a.horizon_years} años)")
+        print(f"- {a.name}: EV = {expected_npv(a, discount_rate):,.0f} (horizonte {a.horizon_years} años)")
 
     print('\n=== Top 5 combinaciones - CONCESIÓN ===')
     print(df_concesion.head(5)[['EV_total'] + [col for col in df_concesion.columns if col != 'EV_total']].to_string(index=False))

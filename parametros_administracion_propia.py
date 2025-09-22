@@ -2,17 +2,18 @@
 """
 Parámetros del análisis de sensibilidad para el parque - ESCENARIO ADMINISTRACIÓN PROPIA.
 Edita libremente los valores, probabilidades y horizontes.
-Las cifras de 'npv' se interpretan como valores presentes (VPN) ya descontados.
+Las cifras de 'npv' representan flujos futuros al final del horizonte temporal.
+El código descontará automáticamente estos flujos al presente usando la tasa de descuento.
 """
 
-# Tasa de descuento opcional para análisis alternativo (no usada en el cálculo base)
-discount_rate = 0.12  # 12% anual (solo informativo en este borrador)
+# Tasa de descuento para descontar flujos futuros al presente
+discount_rate = 0.12  # 12% anual
 
 # Definición de actividades - ESCENARIO ADMINISTRACIÓN PROPIA
 # Cada actividad posee:
 # - decision_key: nombre corto para la decisión binaria (1 = se mantiene / se invierte, 0 = no)
 # - horizon_years: horizonte temporal de evaluación (informativo)
-# - outcomes: lista de escenarios con 'label', 'prob' (0-1) y 'npv' (valor presente del resultado)
+# - outcomes: lista de escenarios con 'label', 'prob' (0-1) y 'npv' (flujo futuro al final del horizonte)
 #
 # Nota: Puedes ajustar probabilidades y montos. Deben sumar 1.0 por actividad.
 activities = [
