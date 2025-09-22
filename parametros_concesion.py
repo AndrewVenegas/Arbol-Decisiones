@@ -107,17 +107,8 @@ activities = [
             {"label": "Baja Ocupación", "prob": 0.20, "npv": -5000.0},
         ],
     },
-    {
-        "name": "Señaléticas",
-        "decision_key": "senaleticas",
-        "horizon_years": 1,
-        "outcomes": [
-            {"label": "Beneficio Alto", "prob": 0.40, "npv": 8000.0},
-            {"label": "Beneficio Moderado", "prob": 0.30, "npv": 2000.0},
-            {"label": "Pérdida", "prob": 0.30, "npv": -5000.0},
-        ],
-    },
+
 ]
 
-# Orden consistente de las decisiones para construir combinaciones (2^11)
+# Orden consistente de las decisiones para construir combinaciones (2^10)
 decision_order = [a["decision_key"] for a in activities]
