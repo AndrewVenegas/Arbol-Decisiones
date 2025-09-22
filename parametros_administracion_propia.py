@@ -16,30 +16,27 @@ discount_rate = 0.12  # 12% anual (solo informativo en este borrador)
 #
 # Nota: Puedes ajustar probabilidades y montos. Deben sumar 1.0 por actividad.
 activities = [
-    # Alojamiento (Lodge) - Administración Propia
     {
-        "name": "Alojamiento (Lodge) - Propio",
-        "decision_key": "lodge_propio",
+        "name": "Alojamiento (Lodge)",
+        "decision_key": "lodge",
         "horizon_years": 2,
         "outcomes": [
             {"label": "Éxito", "prob": 0.10, "npv": 100000.0},
             {"label": "Fracaso", "prob": 0.90, "npv": -10000.0},
         ],
     },
-    # Cabalgatas - Administración Propia
     {
-        "name": "Cabalgatas - Propio",
-        "decision_key": "cabalgatas_propio",
+        "name": "Cabalgatas",
+        "decision_key": "cabalgatas",
         "horizon_years": 3,
         "outcomes": [
             {"label": "Éxito", "prob": 0.30, "npv": 15000.0},
             {"label": "Fracaso", "prob": 0.70, "npv": -60000.0},
         ],
     },
-    # Trekking - Administración Propia
     {
-        "name": "Trekking - Propio",
-        "decision_key": "trekking_propio",
+        "name": "Trekking",
+        "decision_key": "trekking",
         "horizon_years": 2,
         "outcomes": [
             {"label": "Éxito Alto", "prob": 0.20, "npv": 25000.0},
@@ -47,10 +44,9 @@ activities = [
             {"label": "Fracaso", "prob": 0.30, "npv": -12000.0},
         ],
     },
-    # Mountain Bike - Administración Propia
     {
-        "name": "Mountain Bike - Propio",
-        "decision_key": "mtb_propio",
+        "name": "Mountain Bike",
+        "decision_key": "mtb",
         "horizon_years": 3,
         "outcomes": [
             {"label": "Éxito", "prob": 0.35, "npv": 30000.0},
@@ -58,10 +54,9 @@ activities = [
             {"label": "Fracaso", "prob": 0.40, "npv": -20000.0},
         ],
     },
-    # Kayak - Administración Propia
     {
-        "name": "Kayak - Propio",
-        "decision_key": "kayak_propio",
+        "name": "Kayak",
+        "decision_key": "kayak",
         "horizon_years": 2,
         "outcomes": [
             {"label": "Éxito", "prob": 0.25, "npv": 18000.0},
@@ -69,10 +64,9 @@ activities = [
             {"label": "Fracaso", "prob": 0.50, "npv": -9000.0},
         ],
     },
-    # Tours Guiados - Administración Propia
     {
-        "name": "Tours Guiados - Propio",
-        "decision_key": "tours_guiados_propio",
+        "name": "Tours Guiados",
+        "decision_key": "tours_guiados",
         "horizon_years": 3,
         "outcomes": [
             {"label": "Alta Demanda", "prob": 0.25, "npv": 35000.0},
@@ -80,10 +74,9 @@ activities = [
             {"label": "Baja Demanda", "prob": 0.30, "npv": -8000.0},
         ],
     },
-    # Jornadas de Educación - Administración Propia
     {
-        "name": "Jornadas de Educación - Propio",
-        "decision_key": "jornadas_educacion_propio",
+        "name": "Jornadas de Educación",
+        "decision_key": "jornadas_educacion",
         "horizon_years": 2,
         "outcomes": [
             {"label": "Éxito Académico", "prob": 0.40, "npv": 20000.0},
@@ -91,10 +84,9 @@ activities = [
             {"label": "Baja Participación", "prob": 0.25, "npv": -15000.0},
         ],
     },
-    # Eventos Especiales - Administración Propia
     {
-        "name": "Eventos Especiales - Propio",
-        "decision_key": "eventos_especiales_propio",
+        "name": "Eventos Especiales",
+        "decision_key": "eventos_especiales",
         "horizon_years": 2,
         "outcomes": [
             {"label": "Evento Exitoso", "prob": 0.30, "npv": 28000.0},
@@ -102,10 +94,9 @@ activities = [
             {"label": "Evento Fallido", "prob": 0.30, "npv": -12000.0},
         ],
     },
-    # Arriendo de Espacios - Administración Propia
     {
-        "name": "Arriendo de Espacios - Propio",
-        "decision_key": "arriendo_espacios_propio",
+        "name": "Arriendo de Espacios",
+        "decision_key": "arriendo_espacios",
         "horizon_years": 4,
         "outcomes": [
             {"label": "Alta Ocupación", "prob": 0.35, "npv": 40000.0},
@@ -113,7 +104,6 @@ activities = [
             {"label": "Baja Ocupación", "prob": 0.20, "npv": -5000.0},
         ],
     },
-    # Señaléticas - Siempre incluida (administración propia)
     {
         "name": "Señaléticas",
         "decision_key": "senaleticas",

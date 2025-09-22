@@ -186,32 +186,25 @@ def compare_concession_vs_own(activities_concesion: List[Activity], activities_p
     """
     comparison_data = []
     
-    # Crear diccionarios para acceso rápido por nombre base
-    concesion_dict = {}
-    for act in activities_concesion:
-        base_name = act.name.replace(' - Concesión', '')
-        concesion_dict[base_name] = act
+    # Crear diccionarios para acceso rápido por nombre
+    concesion_dict = {act.name: act for act in activities_concesion}
+    propio_dict = {act.name: act for act in activities_propio}
     
-    propio_dict = {}
-    for act in activities_propio:
-        base_name = act.name.replace(' - Propio', '')
-        propio_dict[base_name] = act
+    # Obtener todos los nombres únicos
+    all_names = set(concesion_dict.keys()) | set(propio_dict.keys())
     
-    # Obtener todos los nombres base únicos
-    all_base_names = set(concesion_dict.keys()) | set(propio_dict.keys())
-    
-    for base_name in all_base_names:
-        if base_name in concesion_dict and base_name in propio_dict:
+    for name in all_names:
+        if name in concesion_dict and name in propio_dict:
             # Tiene ambas versiones
-            propio = propio_dict[base_name]
-            concesion = concesion_dict[base_name]
+            propio = propio_dict[name]
+            concesion = concesion_dict[name]
             
             ev_propio = expected_npv(propio)
             ev_concesion = expected_npv(concesion)
             diferencia = ev_propio - ev_concesion
             
             comparison_data.append({
-                'Actividad': base_name,
+                'Actividad': name,
                 'EV_Propio': ev_propio,
                 'EV_Concesion': ev_concesion,
                 'Diferencia_EV': diferencia,
@@ -219,12 +212,12 @@ def compare_concession_vs_own(activities_concesion: List[Activity], activities_p
                 'Ventaja_Propio': max(0, diferencia),
                 'Ventaja_Concesion': max(0, -diferencia)
             })
-        elif base_name in concesion_dict:
+        elif name in concesion_dict:
             # Solo tiene versión concesionada
-            concesion = concesion_dict[base_name]
+            concesion = concesion_dict[name]
             ev_concesion = expected_npv(concesion)
             comparison_data.append({
-                'Actividad': base_name,
+                'Actividad': name,
                 'EV_Propio': 0,
                 'EV_Concesion': ev_concesion,
                 'Diferencia_EV': -ev_concesion,
@@ -232,12 +225,12 @@ def compare_concession_vs_own(activities_concesion: List[Activity], activities_p
                 'Ventaja_Propio': 0,
                 'Ventaja_Concesion': ev_concesion
             })
-        elif base_name in propio_dict:
+        elif name in propio_dict:
             # Solo tiene versión propia
-            propio = propio_dict[base_name]
+            propio = propio_dict[name]
             ev_propio = expected_npv(propio)
             comparison_data.append({
-                'Actividad': base_name,
+                'Actividad': name,
                 'EV_Propio': ev_propio,
                 'EV_Concesion': 0,
                 'Diferencia_EV': ev_propio,
@@ -442,31 +435,24 @@ def main():
     print("🚀 Iniciando análisis de árbol de decisiones...")
     start_time = time.time()
     
-    # Crear carpeta base de resultados
-    print("📁 Preparando carpetas de resultados...")
-    resultados_base = "resultados"
-    if not os.path.exists(resultados_base):
-        os.makedirs(resultados_base)
-        print(f"   ✅ Carpeta base '{resultados_base}' creada")
-    else:
-        print(f"   ✅ Carpeta base '{resultados_base}' ya existe")
-    
     # Analizar escenario de CONCESIÓN
     df_concesion, df_tornado_concesion, activities_concesion = analyze_scenario(
-        P_CONCESION, "Concesion", resultados_base
+        P_CONCESION, "concesion", "resultados"
     )
     
     # Analizar escenario de ADMINISTRACIÓN PROPIA
     df_propio, df_tornado_propio, activities_propio = analyze_scenario(
-        P_PROPIO, "Administracion-Propia", resultados_base
+        P_PROPIO, "administracion-propia", "resultados"
     )
     
     # Análisis comparativo entre ambos escenarios
     print("\n⚖️ Generando análisis comparativo...")
     df_comparison = compare_concession_vs_own(activities_concesion, activities_propio)
-    plot_concession_comparison(df_comparison, f'{resultados_base}/comparacion_concesion_vs_propio.png')
-    df_comparison.to_csv(f'{resultados_base}/comparacion_concesion_vs_propio.csv', index=False)
-    print(f"   ✅ Análisis comparativo guardado en {resultados_base}/")
+    
+    # Guardar análisis comparativo en carpeta de concesión
+    plot_concession_comparison(df_comparison, f'resultados-concesion/comparacion_concesion_vs_propio.png')
+    df_comparison.to_csv(f'resultados-concesion/comparacion_concesion_vs_propio.csv', index=False)
+    print(f"   ✅ Análisis comparativo guardado en resultados-concesion/")
     
     # Crear resumen de escenarios principales
     print("🎯 Generando resumen de escenarios principales...")
@@ -477,7 +463,7 @@ def main():
     if mejor_concesion is not None:
         actividades_concesion = [col for col in df_concesion.columns if col != 'EV_total' and mejor_concesion[col] == 1]
         scenarios_data.append({
-            'Escenario': 'Todo Concesionado',
+            'Escenario': 'Concesión',
             'EV_Total': mejor_concesion['EV_total'],
             'Actividades_Seleccionadas': ', '.join(actividades_concesion) if actividades_concesion else 'Ninguna',
             'Num_Actividades': len(actividades_concesion)
@@ -488,16 +474,16 @@ def main():
     if mejor_propio is not None:
         actividades_propias = [col for col in df_propio.columns if col != 'EV_total' and mejor_propio[col] == 1]
         scenarios_data.append({
-            'Escenario': 'Todo Propio',
+            'Escenario': 'Administración Propia',
             'EV_Total': mejor_propio['EV_total'],
             'Actividades_Seleccionadas': ', '.join(actividades_propias) if actividades_propias else 'Ninguna',
             'Num_Actividades': len(actividades_propias)
         })
     
     df_scenarios = pd.DataFrame(scenarios_data)
-    plot_main_scenarios(df_scenarios, f'{resultados_base}/escenarios_principales.png')
-    df_scenarios.to_csv(f'{resultados_base}/escenarios_principales.csv', index=False)
-    print(f"   ✅ Resumen de escenarios guardado en {resultados_base}/")
+    plot_main_scenarios(df_scenarios, f'resultados-concesion/escenarios_principales.png')
+    df_scenarios.to_csv(f'resultados-concesion/escenarios_principales.csv', index=False)
+    print(f"   ✅ Resumen de escenarios guardado en resultados-concesion/")
 
     # Imprimir resumen de resultados
     print('\n' + '='*60)
@@ -521,7 +507,7 @@ def main():
     print('\n=== Comparación: Concesión vs Administración Propia ===')
     print(df_comparison[['Actividad', 'EV_Propio', 'EV_Concesion', 'Diferencia_EV', 'Mejor_Opcion']].to_string(index=False))
 
-    print('\n=== Escenarios Principales: Todo Concesionado vs Todo Propio ===')
+    print('\n=== Escenarios Principales: Concesión vs Administración Propia ===')
     print(df_scenarios[['Escenario', 'EV_Total', 'Num_Actividades', 'Actividades_Seleccionadas']].to_string(index=False))
 
     # Resumen final
@@ -532,7 +518,7 @@ def main():
     print(f"⏱️  Tiempo total: {total_time:.1f} segundos")
     print(f"📊 Combinaciones concesión: {len(df_concesion):,}")
     print(f"📊 Combinaciones administración propia: {len(df_propio):,}")
-    print(f"📁 Archivos generados: 12")
+    print(f"📁 Archivos generados: 14")
     
     print('\n📋 Archivos generados:')
     print(f'\n📁 Carpeta "resultados-concesion":')
@@ -542,6 +528,10 @@ def main():
     print(f' - arbol_decision.png')
     print(f' - top_10_combinaciones.png')
     print(f' - worst_10_combinaciones.png')
+    print(f' - comparacion_concesion_vs_propio.png')
+    print(f' - comparacion_concesion_vs_propio.csv')
+    print(f' - escenarios_principales.png')
+    print(f' - escenarios_principales.csv')
     
     print(f'\n📁 Carpeta "resultados-administracion-propia":')
     print(f' - combinaciones_ev.csv')
@@ -550,12 +540,6 @@ def main():
     print(f' - arbol_decision.png')
     print(f' - top_10_combinaciones.png')
     print(f' - worst_10_combinaciones.png')
-    
-    print(f'\n📁 Carpeta "resultados" (análisis comparativo):')
-    print(f' - comparacion_concesion_vs_propio.png')
-    print(f' - comparacion_concesion_vs_propio.csv')
-    print(f' - escenarios_principales.png')
-    print(f' - escenarios_principales.csv')
 
 if __name__ == '__main__':
     main()
