@@ -62,6 +62,300 @@ def verify_calculation_example():
     print(f"   Fórmula: ${future_flow:,} / (1.12)^{horizon_years} = ${npv_calculated:,.0f}")
     print("✅ Cálculo correcto!")
 
+def analyze_main_decision(activities_concesion: List[Activity], activities_propio: List[Activity], discount_rate: float = 0.12) -> pd.DataFrame:
+    """
+    Analiza la decisión principal: Concesionar todo vs Administración propia
+    """
+    print("\n🎯 ANÁLISIS DE DECISIÓN PRINCIPAL:")
+    print("="*60)
+    
+    # Calcular NPV de la mejor combinación de concesión
+    best_concesion_ev = sum(expected_npv(act, discount_rate) for act in activities_concesion)
+    
+    # Calcular NPV de la mejor combinación de administración propia
+    best_propio_ev = sum(expected_npv(act, discount_rate) for act in activities_propio)
+    
+    # Calcular diferencia
+    diferencia = best_propio_ev - best_concesion_ev
+    
+    print(f"💰 CONCESIONAR TODO:")
+    print(f"   NPV Total: ${best_concesion_ev:,.0f}")
+    print(f"   Actividades: {len(activities_concesion)}")
+    
+    print(f"\n💰 ADMINISTRACIÓN PROPIA:")
+    print(f"   NPV Total: ${best_propio_ev:,.0f}")
+    print(f"   Actividades: {len(activities_propio)}")
+    
+    print(f"\n⚖️ DIFERENCIA:")
+    print(f"   Ventaja Administración Propia: ${diferencia:,.0f}")
+    print(f"   Mejor opción: {'Administración Propia' if diferencia > 0 else 'Concesión'}")
+    
+    # Crear DataFrame para exportar
+    decision_data = [{
+        'Decision': 'Concesionar Todo',
+        'NPV_Total': best_concesion_ev,
+        'Num_Actividades': len(activities_concesion),
+        'Tipo': 'Concesión'
+    }, {
+        'Decision': 'Administración Propia',
+        'NPV_Total': best_propio_ev,
+        'Num_Actividades': len(activities_propio),
+        'Tipo': 'Propia'
+    }]
+    
+    return pd.DataFrame(decision_data)
+
+def analyze_individual_decisions(activities: List[Activity], discount_rate: float = 0.12) -> pd.DataFrame:
+    """
+    Analiza cada decisión individual: Hacer vs No hacer cada actividad
+    """
+    print(f"\n🔍 ANÁLISIS DE DECISIONES INDIVIDUALES:")
+    print("="*60)
+    
+    decision_data = []
+    
+    for act in activities:
+        # NPV si hago la actividad
+        npv_hacer = expected_npv(act, discount_rate)
+        
+        # NPV si no hago la actividad (siempre 0)
+        npv_no_hacer = 0.0
+        
+        # Diferencia (valor de la decisión)
+        valor_decision = npv_hacer - npv_no_hacer
+        
+        decision_data.append({
+            'Actividad': act.name,
+            'NPV_Hacer': npv_hacer,
+            'NPV_No_Hacer': npv_no_hacer,
+            'Valor_Decision': valor_decision,
+            'Horizonte_Años': act.horizon_years,
+            'Recomendacion': 'HACER' if valor_decision > 0 else 'NO HACER'
+        })
+        
+        print(f"📊 {act.name}:")
+        print(f"   NPV si HAGO: ${npv_hacer:,.0f}")
+        print(f"   NPV si NO HAGO: ${npv_no_hacer:,.0f}")
+        print(f"   Valor de la decisión: ${valor_decision:,.0f}")
+        print(f"   Recomendación: {'HACER' if valor_decision > 0 else 'NO HACER'}")
+        print()
+    
+    return pd.DataFrame(decision_data)
+
+def plot_main_decision_analysis(df_main_decision: pd.DataFrame, outfile: str):
+    """
+    Gráfico de la decisión principal: Concesionar vs Administración propia
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+    
+    # Gráfico 1: Comparación de NPVs
+    colors = ['#FF6B6B', '#4ECDC4']
+    bars = ax1.bar(df_main_decision['Decision'], df_main_decision['NPV_Total'], color=colors)
+    ax1.set_title('NPV Total: Concesión vs Administración Propia', fontsize=14, fontweight='bold')
+    ax1.set_ylabel('NPV Total ($)')
+    ax1.tick_params(axis='x', rotation=45)
+    
+    # Agregar valores en las barras
+    for bar, value in zip(bars, df_main_decision['NPV_Total']):
+        ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(df_main_decision['NPV_Total'])*0.01,
+                f'${value:,.0f}', ha='center', va='bottom', fontweight='bold')
+    
+    # Gráfico 2: Diferencia
+    diferencia = df_main_decision.iloc[1]['NPV_Total'] - df_main_decision.iloc[0]['NPV_Total']
+    color = '#2ECC71' if diferencia > 0 else '#E74C3C'
+    
+    ax2.barh(['Ventaja Administración Propia'], [diferencia], color=color)
+    ax2.set_title('Ventaja de Administración Propia', fontsize=14, fontweight='bold')
+    ax2.set_xlabel('Diferencia en NPV ($)')
+    ax2.axvline(x=0, color='black', linestyle='--', alpha=0.5)
+    
+    # Agregar valor
+    ax2.text(diferencia + (max(abs(diferencia), 1000) * 0.05), 0, f'${diferencia:,.0f}', 
+             ha='left' if diferencia > 0 else 'right', va='center', fontweight='bold')
+    
+    plt.tight_layout()
+    plt.savefig(outfile, dpi=150, bbox_inches='tight')
+    plt.close()
+
+def plot_individual_decisions(df_individual: pd.DataFrame, outfile: str):
+    """
+    Gráfico de decisiones individuales: Hacer vs No hacer cada actividad
+    """
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 12))
+    
+    # Ordenar por valor de decisión
+    df_sorted = df_individual.sort_values('Valor_Decision', ascending=True)
+    
+    # Gráfico 1: Valor de cada decisión
+    colors = ['#E74C3C' if x < 0 else '#2ECC71' for x in df_sorted['Valor_Decision']]
+    bars = ax1.barh(df_sorted['Actividad'], df_sorted['Valor_Decision'], color=colors)
+    ax1.set_title('Valor de Decisión por Actividad', fontsize=14, fontweight='bold')
+    ax1.set_xlabel('Valor de la Decisión ($)')
+    ax1.axvline(x=0, color='black', linestyle='--', alpha=0.5)
+    
+    # Agregar valores
+    for bar, value in zip(bars, df_sorted['Valor_Decision']):
+        ax1.text(bar.get_width() + (max(abs(df_sorted['Valor_Decision'])) * 0.02), 
+                bar.get_y() + bar.get_height()/2, f'${value:,.0f}', 
+                ha='left' if value > 0 else 'right', va='center', fontsize=9)
+    
+    # Gráfico 2: NPV si hago vs no hago
+    x = range(len(df_sorted))
+    width = 0.35
+    
+    bars1 = ax2.bar([i - width/2 for i in x], df_sorted['NPV_Hacer'], width, 
+                    label='NPV si HAGO', color='#3498DB', alpha=0.8)
+    bars2 = ax2.bar([i + width/2 for i in x], df_sorted['NPV_No_Hacer'], width, 
+                    label='NPV si NO HAGO', color='#95A5A6', alpha=0.8)
+    
+    ax2.set_title('NPV: Hacer vs No Hacer por Actividad', fontsize=14, fontweight='bold')
+    ax2.set_ylabel('NPV ($)')
+    ax2.set_xlabel('Actividades')
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(df_sorted['Actividad'], rotation=45, ha='right')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(outfile, dpi=150, bbox_inches='tight')
+    plt.close()
+
+def generate_executive_summary(activities_concesion: List[Activity], activities_propio: List[Activity], discount_rate: float = 0.12):
+    """
+    Genera un resumen ejecutivo con recomendaciones claras de qué hacer y qué no hacer
+    """
+    print("\n" + "="*80)
+    print("📋 RESUMEN EJECUTIVO - RECOMENDACIONES DE DECISIONES")
+    print("="*80)
+    
+    # 1. DECISIÓN PRINCIPAL
+    print("\n🎯 DECISIÓN PRINCIPAL:")
+    print("-" * 50)
+    
+    npv_concesion = sum(expected_npv(act, discount_rate) for act in activities_concesion)
+    npv_propio = sum(expected_npv(act, discount_rate) for act in activities_propio)
+    diferencia = npv_propio - npv_concesion
+    
+    if diferencia > 0:
+        print(f"✅ RECOMENDACIÓN: ADMINISTRACIÓN PROPIA")
+        print(f"   💰 Ventaja: ${diferencia:,.0f}")
+        print(f"   📊 NPV Administración Propia: ${npv_propio:,.0f}")
+        print(f"   📊 NPV Concesión: ${npv_concesion:,.0f}")
+    else:
+        print(f"✅ RECOMENDACIÓN: CONCESIONAR TODO")
+        print(f"   💰 Ventaja: ${-diferencia:,.0f}")
+        print(f"   📊 NPV Concesión: ${npv_concesion:,.0f}")
+        print(f"   📊 NPV Administración Propia: ${npv_propio:,.0f}")
+    
+    # 2. DECISIONES INDIVIDUALES - ADMINISTRACIÓN PROPIA
+    print(f"\n🔍 DECISIONES INDIVIDUALES - ADMINISTRACIÓN PROPIA:")
+    print("-" * 50)
+    
+    actividades_hacer = []
+    actividades_no_hacer = []
+    
+    for act in activities_propio:
+        npv_hacer = expected_npv(act, discount_rate)
+        if npv_hacer > 0:
+            actividades_hacer.append((act.name, npv_hacer))
+        else:
+            actividades_no_hacer.append((act.name, npv_hacer))
+    
+    # Ordenar por NPV descendente
+    actividades_hacer.sort(key=lambda x: x[1], reverse=True)
+    actividades_no_hacer.sort(key=lambda x: x[1], reverse=True)
+    
+    print("✅ HACER (Ordenadas por rentabilidad):")
+    for i, (nombre, npv) in enumerate(actividades_hacer, 1):
+        print(f"   {i:2d}. {nombre:<30} → ${npv:>8,.0f}")
+    
+    print("\n❌ NO HACER (Ordenadas por pérdida):")
+    for i, (nombre, npv) in enumerate(actividades_no_hacer, 1):
+        print(f"   {i:2d}. {nombre:<30} → ${npv:>8,.0f}")
+    
+    # 3. DECISIONES INDIVIDUALES - CONCESIÓN
+    print(f"\n🔍 DECISIONES INDIVIDUALES - CONCESIÓN:")
+    print("-" * 50)
+    
+    actividades_hacer_concesion = []
+    actividades_no_hacer_concesion = []
+    
+    for act in activities_concesion:
+        npv_hacer = expected_npv(act, discount_rate)
+        if npv_hacer > 0:
+            actividades_hacer_concesion.append((act.name, npv_hacer))
+        else:
+            actividades_no_hacer_concesion.append((act.name, npv_hacer))
+    
+    # Ordenar por NPV descendente
+    actividades_hacer_concesion.sort(key=lambda x: x[1], reverse=True)
+    actividades_no_hacer_concesion.sort(key=lambda x: x[1], reverse=True)
+    
+    print("✅ HACER (Ordenadas por rentabilidad):")
+    for i, (nombre, npv) in enumerate(actividades_hacer_concesion, 1):
+        print(f"   {i:2d}. {nombre:<30} → ${npv:>8,.0f}")
+    
+    print("\n❌ NO HACER (Ordenadas por pérdida):")
+    for i, (nombre, npv) in enumerate(actividades_no_hacer_concesion, 1):
+        print(f"   {i:2d}. {nombre:<30} → ${npv:>8,.0f}")
+    
+    # 4. RESUMEN FINAL
+    print(f"\n📊 RESUMEN FINAL:")
+    print("-" * 50)
+    print(f"🎯 Mejor estrategia: {'ADMINISTRACIÓN PROPIA' if diferencia > 0 else 'CONCESIÓN'}")
+    print(f"💰 Valor total esperado: ${max(npv_concesion, npv_propio):,.0f}")
+    print(f"📈 Actividades rentables (Administración Propia): {len(actividades_hacer)}")
+    print(f"📉 Actividades no rentables (Administración Propia): {len(actividades_no_hacer)}")
+    print(f"📈 Actividades rentables (Concesión): {len(actividades_hacer_concesion)}")
+    print(f"📉 Actividades no rentables (Concesión): {len(actividades_no_hacer_concesion)}")
+    
+    # 5. GUARDAR RESUMEN EN ARCHIVO
+    with open('resultados-concesion/resumen_ejecutivo.txt', 'w', encoding='utf-8') as f:
+        f.write("RESUMEN EJECUTIVO - RECOMENDACIONES DE DECISIONES\n")
+        f.write("="*80 + "\n\n")
+        
+        f.write("DECISIÓN PRINCIPAL:\n")
+        f.write("-" * 50 + "\n")
+        if diferencia > 0:
+            f.write("RECOMENDACIÓN: ADMINISTRACIÓN PROPIA\n")
+            f.write(f"Ventaja: ${diferencia:,.0f}\n")
+            f.write(f"NPV Administración Propia: ${npv_propio:,.0f}\n")
+            f.write(f"NPV Concesión: ${npv_concesion:,.0f}\n")
+        else:
+            f.write("RECOMENDACIÓN: CONCESIONAR TODO\n")
+            f.write(f"Ventaja: ${-diferencia:,.0f}\n")
+            f.write(f"NPV Concesión: ${npv_concesion:,.0f}\n")
+            f.write(f"NPV Administración Propia: ${npv_propio:,.0f}\n")
+        
+        f.write(f"\nDECISIONES INDIVIDUALES - ADMINISTRACIÓN PROPIA:\n")
+        f.write("-" * 50 + "\n")
+        f.write("HACER (Ordenadas por rentabilidad):\n")
+        for i, (nombre, npv) in enumerate(actividades_hacer, 1):
+            f.write(f"{i:2d}. {nombre:<30} → ${npv:>8,.0f}\n")
+        f.write("\nNO HACER (Ordenadas por pérdida):\n")
+        for i, (nombre, npv) in enumerate(actividades_no_hacer, 1):
+            f.write(f"{i:2d}. {nombre:<30} → ${npv:>8,.0f}\n")
+        
+        f.write(f"\nDECISIONES INDIVIDUALES - CONCESIÓN:\n")
+        f.write("-" * 50 + "\n")
+        f.write("HACER (Ordenadas por rentabilidad):\n")
+        for i, (nombre, npv) in enumerate(actividades_hacer_concesion, 1):
+            f.write(f"{i:2d}. {nombre:<30} → ${npv:>8,.0f}\n")
+        f.write("\nNO HACER (Ordenadas por pérdida):\n")
+        for i, (nombre, npv) in enumerate(actividades_no_hacer_concesion, 1):
+            f.write(f"{i:2d}. {nombre:<30} → ${npv:>8,.0f}\n")
+        
+        f.write(f"\nRESUMEN FINAL:\n")
+        f.write("-" * 50 + "\n")
+        f.write(f"Mejor estrategia: {'ADMINISTRACIÓN PROPIA' if diferencia > 0 else 'CONCESIÓN'}\n")
+        f.write(f"Valor total esperado: ${max(npv_concesion, npv_propio):,.0f}\n")
+        f.write(f"Actividades rentables (Administración Propia): {len(actividades_hacer)}\n")
+        f.write(f"Actividades no rentables (Administración Propia): {len(actividades_no_hacer)}\n")
+        f.write(f"Actividades rentables (Concesión): {len(actividades_hacer_concesion)}\n")
+        f.write(f"Actividades no rentables (Concesión): {len(actividades_no_hacer_concesion)}\n")
+    
+    print(f"\n💾 Resumen ejecutivo guardado en: resultados-concesion/resumen_ejecutivo.txt")
+
 def enumerate_combinations(decision_order: List[str]) -> List[Tuple[Tuple[int, ...], Dict[str, int]]]:
     combos = []
     for bits in itertools.product([0,1], repeat=len(decision_order)):
@@ -490,6 +784,27 @@ def main():
     df_comparison.to_csv(f'resultados-concesion/comparacion_concesion_vs_propio.csv', index=False)
     print(f"   ✅ Análisis comparativo guardado en resultados-concesion/")
     
+    # NUEVO: Análisis de decisión principal
+    print("\n🎯 Generando análisis de decisión principal...")
+    df_main_decision = analyze_main_decision(activities_concesion, activities_propio, discount_rate)
+    plot_main_decision_analysis(df_main_decision, f'resultados-concesion/decision_principal.png')
+    df_main_decision.to_csv(f'resultados-concesion/decision_principal.csv', index=False)
+    print(f"   ✅ Análisis de decisión principal guardado en resultados-concesion/")
+    
+    # NUEVO: Análisis de decisiones individuales - Concesión
+    print("\n🔍 Generando análisis de decisiones individuales - Concesión...")
+    df_individual_concesion = analyze_individual_decisions(activities_concesion, discount_rate)
+    plot_individual_decisions(df_individual_concesion, f'resultados-concesion/decisiones_individuales_concesion.png')
+    df_individual_concesion.to_csv(f'resultados-concesion/decisiones_individuales_concesion.csv', index=False)
+    print(f"   ✅ Análisis de decisiones individuales (Concesión) guardado en resultados-concesion/")
+    
+    # NUEVO: Análisis de decisiones individuales - Administración Propia
+    print("\n🔍 Generando análisis de decisiones individuales - Administración Propia...")
+    df_individual_propio = analyze_individual_decisions(activities_propio, discount_rate)
+    plot_individual_decisions(df_individual_propio, f'resultados-administracion-propia/decisiones_individuales_propio.png')
+    df_individual_propio.to_csv(f'resultados-administracion-propia/decisiones_individuales_propio.csv', index=False)
+    print(f"   ✅ Análisis de decisiones individuales (Administración Propia) guardado en resultados-administracion-propia/")
+    
     # Crear resumen de escenarios principales
     print("🎯 Generando resumen de escenarios principales...")
     scenarios_data = []
@@ -520,6 +835,11 @@ def main():
     plot_main_scenarios(df_scenarios, f'resultados-concesion/escenarios_principales.png')
     df_scenarios.to_csv(f'resultados-concesion/escenarios_principales.csv', index=False)
     print(f"   ✅ Resumen de escenarios guardado en resultados-concesion/")
+    
+    # NUEVO: Resumen ejecutivo con recomendaciones
+    print("\n📋 Generando resumen ejecutivo...")
+    generate_executive_summary(activities_concesion, activities_propio, discount_rate)
+    print(f"   ✅ Resumen ejecutivo generado")
 
     # Imprimir resumen de resultados
     print('\n' + '='*60)
@@ -554,7 +874,7 @@ def main():
     print(f"⏱️  Tiempo total: {total_time:.1f} segundos")
     print(f"📊 Combinaciones concesión: {len(df_concesion):,}")
     print(f"📊 Combinaciones administración propia: {len(df_propio):,}")
-    print(f"📁 Archivos generados: 14")
+    print(f"📁 Archivos generados: 21")
     
     print('\n📋 Archivos generados:')
     print(f'\n📁 Carpeta "resultados-concesion":')
@@ -568,6 +888,11 @@ def main():
     print(f' - comparacion_concesion_vs_propio.csv')
     print(f' - escenarios_principales.png')
     print(f' - escenarios_principales.csv')
+    print(f' - decision_principal.png')
+    print(f' - decision_principal.csv')
+    print(f' - decisiones_individuales_concesion.png')
+    print(f' - decisiones_individuales_concesion.csv')
+    print(f' - resumen_ejecutivo.txt')
     
     print(f'\n📁 Carpeta "resultados-administracion-propia":')
     print(f' - combinaciones_ev.csv')
@@ -576,6 +901,8 @@ def main():
     print(f' - arbol_decision.png')
     print(f' - top_10_combinaciones.png')
     print(f' - worst_10_combinaciones.png')
+    print(f' - decisiones_individuales_propio.png')
+    print(f' - decisiones_individuales_propio.csv')
 
 if __name__ == '__main__':
     main()
