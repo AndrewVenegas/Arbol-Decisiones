@@ -40,14 +40,14 @@ def expected_npv(activity: Activity, discount_rate: float = 0.12) -> float:
 
 def verify_calculation_example():
     """
-    Función de verificación para demostrar el cálculo correcto del NPV
+    Función de verificación para demostrar el cálculo correcto del VPN
     """
     print("\n🧮 VERIFICACIÓN DE CÁLCULOS:")
     print("="*50)
     
     # Ejemplo: Actividad con horizonte de 2 años, flujo futuro de $100,000
     # Tasa de descuento: 12%
-    # NPV esperado = $100,000 / (1.12)^2 = $100,000 / 1.2544 = $79,719
+    # VPN esperado = $100,000 / (1.12)^2 = $100,000 / 1.2544 = $79,719
     
     horizon_years = 2
     discount_rate = 0.12
@@ -58,7 +58,7 @@ def verify_calculation_example():
     print(f"   Flujo futuro: ${future_flow:,}")
     print(f"   Horizonte: {horizon_years} años")
     print(f"   Tasa de descuento: {discount_rate*100:.1f}%")
-    print(f"   NPV calculado: ${npv_calculated:,.0f}")
+    print(f"   VPN calculado: ${npv_calculated:,.0f}")
     print(f"   Fórmula: ${future_flow:,} / (1.12)^{horizon_years} = ${npv_calculated:,.0f}")
     print("✅ Cálculo correcto!")
 
@@ -96,21 +96,21 @@ def analyze_main_decision(activities_concesion: List[Activity], activities_propi
     print("\n🎯 ANÁLISIS DE DECISIÓN PRINCIPAL:")
     print("="*60)
     
-    # Calcular NPV de la mejor combinación de concesión
+    # Calcular VPN de la mejor combinación de concesión
     best_concesion_ev = sum(expected_npv(act, discount_rate) for act in activities_concesion)
     
-    # Calcular NPV de la mejor combinación de administración propia
+    # Calcular VPN de la mejor combinación de administración propia
     best_propio_ev = sum(expected_npv(act, discount_rate) for act in activities_propio)
     
     # Calcular diferencia
     diferencia = best_propio_ev - best_concesion_ev
     
     print(f"💰 CONCESIONAR TODO:")
-    print(f"   NPV Total: ${best_concesion_ev:,.0f}")
+    print(f"   VPN Total: ${best_concesion_ev:,.0f}")
     print(f"   Actividades: {len(activities_concesion)}")
     
     print(f"\n💰 ADMINISTRACIÓN PROPIA:")
-    print(f"   NPV Total: ${best_propio_ev:,.0f}")
+    print(f"   VPN Total: ${best_propio_ev:,.0f}")
     print(f"   Actividades: {len(activities_propio)}")
     
     print(f"\n⚖️ DIFERENCIA:")
@@ -142,10 +142,10 @@ def analyze_individual_decisions(activities: List[Activity], discount_rate: floa
     decision_data = []
     
     for act in activities:
-        # NPV si hago la actividad
+        # VPN si hago la actividad
         npv_hacer = expected_npv(act, discount_rate)
         
-        # NPV si no hago la actividad (siempre 0)
+        # VPN si no hago la actividad (siempre 0)
         npv_no_hacer = 0.0
         
         # Diferencia (valor de la decisión)
@@ -161,8 +161,8 @@ def analyze_individual_decisions(activities: List[Activity], discount_rate: floa
         })
         
         print(f"📊 {act.name}:")
-        print(f"   NPV si HAGO: ${npv_hacer:,.0f}")
-        print(f"   NPV si NO HAGO: ${npv_no_hacer:,.0f}")
+        print(f"   VPN si HAGO: ${npv_hacer:,.0f}")
+        print(f"   VPN si NO HAGO: ${npv_no_hacer:,.0f}")
         print(f"   Valor de la decisión: ${valor_decision:,.0f}")
         print(f"   Recomendación: {'HACER' if valor_decision > 0 else 'NO HACER'}")
         print()
@@ -179,8 +179,8 @@ def plot_main_decision_analysis(df_main_decision: pd.DataFrame, outfile: str):
     colors = ['#FF6B6B', '#4ECDC4']
     npv_millions = df_main_decision['NPV_Total'] / 1e6  # Convertir a millones
     bars = ax1.bar(df_main_decision['Decision'], npv_millions, color=colors)
-    ax1.set_title('NPV Total: Concesión vs Administración Propia', fontsize=14, fontweight='bold')
-    ax1.set_ylabel('NPV Total (Millones $)')
+    ax1.set_title('VPN Total: Concesión vs Administración Propia', fontsize=14, fontweight='bold')
+    ax1.set_ylabel('VPN Total (Millones $)')
     ax1.tick_params(axis='x', rotation=45)
     
     # Agregar valores en las barras
@@ -195,7 +195,7 @@ def plot_main_decision_analysis(df_main_decision: pd.DataFrame, outfile: str):
     
     ax2.barh(['Ventaja Administración Propia'], [diferencia_millions], color=color)
     ax2.set_title('Ventaja de Administración Propia', fontsize=14, fontweight='bold')
-    ax2.set_xlabel('Diferencia en NPV (Millones $)')
+    ax2.set_xlabel('Diferencia en VPN (Millones $)')
     ax2.axvline(x=0, color='black', linestyle='--', alpha=0.5)
     
     # Agregar valor
@@ -219,8 +219,8 @@ def plot_individual_decisions(df_individual: pd.DataFrame, outfile: str):
     valor_millions = df_sorted['Valor_Decision'] / 1e6  # Convertir a millones
     colors = ['#E74C3C' if x < 0 else '#2ECC71' for x in valor_millions]
     bars = ax1.barh(df_sorted['Actividad'], valor_millions, color=colors)
-    ax1.set_title('Valor de Decisión por Actividad', fontsize=14, fontweight='bold')
-    ax1.set_xlabel('Valor de la Decisión (Millones $)')
+    ax1.set_title('VPN ponderado por actividad', fontsize=14, fontweight='bold')
+    ax1.set_xlabel('VPN (en Millones $)')
     ax1.axvline(x=0, color='black', linestyle='--', alpha=0.5)
     
     # Agregar valores
@@ -229,7 +229,7 @@ def plot_individual_decisions(df_individual: pd.DataFrame, outfile: str):
                 bar.get_y() + bar.get_height()/2, f'${value:,.1f}M', 
                 ha='left' if value > 0 else 'right', va='center', fontsize=9)
     
-    # Gráfico 2: NPV si hago vs no hago
+    # Gráfico 2: VPN si hago vs no hago
     x = range(len(df_sorted))
     width = 0.35
     
@@ -237,12 +237,12 @@ def plot_individual_decisions(df_individual: pd.DataFrame, outfile: str):
     npv_no_hacer_millions = df_sorted['NPV_No_Hacer'] / 1e6  # Convertir a millones
     
     bars1 = ax2.bar([i - width/2 for i in x], npv_hacer_millions, width, 
-                    label='NPV si HAGO', color='#3498DB', alpha=0.8)
+                    label='VPN si HAGO', color='#3498DB', alpha=0.8)
     bars2 = ax2.bar([i + width/2 for i in x], npv_no_hacer_millions, width, 
-                    label='NPV si NO HAGO', color='#95A5A6', alpha=0.8)
+                    label='VPN si NO HAGO', color='#95A5A6', alpha=0.8)
     
-    ax2.set_title('NPV: Hacer vs No Hacer por Actividad', fontsize=14, fontweight='bold')
-    ax2.set_ylabel('NPV (Millones $)')
+    ax2.set_title('VPN: Hacer vs No Hacer por Actividad', fontsize=14, fontweight='bold')
+    ax2.set_ylabel('VPN (Millones $)')
     ax2.set_xlabel('Actividades')
     ax2.set_xticks(x)
     ax2.set_xticklabels(df_sorted['Actividad'], rotation=45, ha='right')
@@ -272,13 +272,13 @@ def generate_executive_summary(activities_concesion: List[Activity], activities_
     if diferencia > 0:
         print(f"✅ RECOMENDACIÓN: ADMINISTRACIÓN PROPIA")
         print(f"   💰 Ventaja: ${diferencia:,.0f}")
-        print(f"   📊 NPV Administración Propia: ${npv_propio:,.0f}")
-        print(f"   📊 NPV Concesión: ${npv_concesion:,.0f}")
+        print(f"   📊 VPN Administración Propia: ${npv_propio:,.0f}")
+        print(f"   📊 VPN Concesión: ${npv_concesion:,.0f}")
     else:
         print(f"✅ RECOMENDACIÓN: CONCESIONAR TODO")
         print(f"   💰 Ventaja: ${-diferencia:,.0f}")
-        print(f"   📊 NPV Concesión: ${npv_concesion:,.0f}")
-        print(f"   📊 NPV Administración Propia: ${npv_propio:,.0f}")
+        print(f"   📊 VPN Concesión: ${npv_concesion:,.0f}")
+        print(f"   📊 VPN Administración Propia: ${npv_propio:,.0f}")
     
     # 2. DECISIONES INDIVIDUALES - ADMINISTRACIÓN PROPIA
     print(f"\n🔍 DECISIONES INDIVIDUALES - ADMINISTRACIÓN PROPIA:")
@@ -294,7 +294,7 @@ def generate_executive_summary(activities_concesion: List[Activity], activities_
         else:
             actividades_no_hacer.append((act.name, npv_hacer))
     
-    # Ordenar por NPV descendente
+    # Ordenar por VPN descendente
     actividades_hacer.sort(key=lambda x: x[1], reverse=True)
     actividades_no_hacer.sort(key=lambda x: x[1], reverse=True)
     
@@ -320,7 +320,7 @@ def generate_executive_summary(activities_concesion: List[Activity], activities_
         else:
             actividades_no_hacer_concesion.append((act.name, npv_hacer))
     
-    # Ordenar por NPV descendente
+    # Ordenar por VPN descendente
     actividades_hacer_concesion.sort(key=lambda x: x[1], reverse=True)
     actividades_no_hacer_concesion.sort(key=lambda x: x[1], reverse=True)
     
@@ -352,13 +352,13 @@ def generate_executive_summary(activities_concesion: List[Activity], activities_
         if diferencia > 0:
             f.write("RECOMENDACIÓN: ADMINISTRACIÓN PROPIA\n")
             f.write(f"Ventaja: ${diferencia:,.0f}\n")
-            f.write(f"NPV Administración Propia: ${npv_propio:,.0f}\n")
-            f.write(f"NPV Concesión: ${npv_concesion:,.0f}\n")
+            f.write(f"VPN Administración Propia: ${npv_propio:,.0f}\n")
+            f.write(f"VPN Concesión: ${npv_concesion:,.0f}\n")
         else:
             f.write("RECOMENDACIÓN: CONCESIONAR TODO\n")
             f.write(f"Ventaja: ${-diferencia:,.0f}\n")
-            f.write(f"NPV Concesión: ${npv_concesion:,.0f}\n")
-            f.write(f"NPV Administración Propia: ${npv_propio:,.0f}\n")
+            f.write(f"VPN Concesión: ${npv_concesion:,.0f}\n")
+            f.write(f"VPN Administración Propia: ${npv_propio:,.0f}\n")
         
         f.write(f"\nDECISIONES INDIVIDUALES - ADMINISTRACIÓN PROPIA:\n")
         f.write("-" * 50 + "\n")
@@ -495,8 +495,8 @@ def plot_top_combinations(df_sorted: pd.DataFrame, outfile: str):
     ev_millions = top_10['EV_total'] / 1e6  # Convertir a millones
     bars = plt.barh(y_pos, ev_millions)
     plt.yticks(y_pos, labels)
-    plt.xlabel('EV Total (Millones $)')
-    plt.title('Top 10 Mejores Combinaciones por Valor Esperado')
+    plt.xlabel('VPN Total (Millones $)')
+    plt.title('Top 10 Mejores Combinaciones por VPN Total')
     
     # Agregar valores en las barras
     for i, (bar, value) in enumerate(zip(bars, ev_millions)):
@@ -528,8 +528,8 @@ def plot_worst_combinations(df_sorted: pd.DataFrame, outfile: str):
     ev_millions = worst_10['EV_total'] / 1e6  # Convertir a millones
     bars = plt.barh(y_pos, ev_millions)
     plt.yticks(y_pos, labels)
-    plt.xlabel('EV Total (Millones $)')
-    plt.title('Top 10 Peores Combinaciones por Valor Esperado')
+    plt.xlabel('VPN Total (Millones $)')
+    plt.title('Top 10 Peores Combinaciones por VPN Total')
     
     # Agregar valores en las barras
     for i, (bar, value) in enumerate(zip(bars, ev_millions)):
@@ -617,7 +617,7 @@ def plot_concession_comparison(df_comparison: pd.DataFrame, outfile: str):
             label='Concesión', alpha=0.8)
     
     ax1.set_xlabel('Actividades')
-    ax1.set_ylabel('Valor Esperado (EV) - Millones $')
+    ax1.set_ylabel('Valor Presente Neto (VPN) - Millones $')
     ax1.set_title('Comparación: Administración Propia vs Concesión')
     ax1.set_xticks(x)
     ax1.set_xticklabels(df_comparison['Actividad'], rotation=45, ha='right')
@@ -631,7 +631,7 @@ def plot_concession_comparison(df_comparison: pd.DataFrame, outfile: str):
     ax2.barh(x, ventaja_propio_millions, alpha=0.8, label='Ventaja Propia')
     ax2.barh(x, [-v for v in ventaja_concesion_millions], alpha=0.8, label='Ventaja Concesión')
     
-    ax2.set_xlabel('Ventaja en EV (Millones $)')
+    ax2.set_xlabel('Ventaja en VPN (Millones $)')
     ax2.set_ylabel('Actividades')
     ax2.set_title('Ventaja de cada Modalidad')
     ax2.set_yticks(x)
@@ -948,6 +948,68 @@ def main():
     print(f' - worst_10_combinaciones.png')
     print(f' - decisiones_individuales_propio.png')
     print(f' - decisiones_individuales_propio.csv')
+
+def create_parameters_excel():
+    """
+    Crea un archivo Excel con todos los parámetros de ambos escenarios
+    """
+    print("\n📊 CREANDO ARCHIVO EXCEL CON PARÁMETROS...")
+    
+    # Lista para almacenar todos los datos
+    all_data = []
+    
+    # Procesar administración propia
+    for activity in P_PROPIO.activities:
+        for i, outcome in enumerate(activity['outcomes']):
+            caso = 2 - i  # 2=bueno, 1=intermedio, 0=pesimista
+            all_data.append({
+                'escenario': 'Administración Propia',
+                'actividad': activity['name'],
+                'caso': caso,
+                'label': outcome['label'],
+                'prob': outcome['prob'],
+                'npv': outcome['npv'],
+                'horizon_years': activity['horizon_years']
+            })
+    
+    # Procesar concesión
+    for activity in P_CONCESION.activities:
+        for i, outcome in enumerate(activity['outcomes']):
+            caso = 2 - i  # 2=bueno, 1=intermedio, 0=pesimista
+            all_data.append({
+                'escenario': 'Concesión',
+                'actividad': activity['name'],
+                'caso': caso,
+                'label': outcome['label'],
+                'prob': outcome['prob'],
+                'npv': outcome['npv'],
+                'horizon_years': activity['horizon_years']
+            })
+    
+    # Crear DataFrame
+    df = pd.DataFrame(all_data)
+    
+    # Guardar en Excel
+    excel_file = 'parametros_completos.xlsx'
+    with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
+        # Hoja principal con todos los datos
+        df.to_excel(writer, sheet_name='Todos_Parametros', index=False)
+        
+        # Hoja separada para administración propia
+        df_propio = df[df['escenario'] == 'Administración Propia'].copy()
+        df_propio = df_propio.drop('escenario', axis=1)
+        df_propio.to_excel(writer, sheet_name='Administracion_Propia', index=False)
+        
+        # Hoja separada para concesión
+        df_concesion = df[df['escenario'] == 'Concesión'].copy()
+        df_concesion = df_concesion.drop('escenario', axis=1)
+        df_concesion.to_excel(writer, sheet_name='Concesion', index=False)
+    
+    print(f"✅ Archivo Excel creado: {excel_file}")
+    print(f"   📋 Hojas: Todos_Parametros, Administracion_Propia, Concesion")
+    print(f"   📊 Total de registros: {len(df)}")
+    
+    return excel_file
 
 if __name__ == '__main__':
     main()
